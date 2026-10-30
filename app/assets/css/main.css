@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-display: Unbounded, Inter, sans-serif;
+
+  --color-ink: #0B0D10;
+  --color-deep: #050607;
+  --color-card: #15181D;
+  --color-raised: #1A1E24;
+  --color-line: #262B33;
+  --color-text: #F3F5F7;
+  --color-muted: #9AA3AE;
+  --color-faint: #6F7883;
+  --color-lime: #C6F432;
+  --color-lime-soft: #E2FF8A;
+  --color-violet: #8B7CFF;
+  --color-violet-soft: #C9C1FF;
+  --color-violet-deep: #1A1630;
+  --color-violet-line: #3B3370;
+  --color-orange: #FF8A3D;
+  --color-danger: #FF5C5C;
+}
+
+@layer base {
+  html, body {
+    background: var(--color-ink);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
+  input::placeholder { color: var(--color-faint); }
+}
+
+@layer components {
+  .field {
+    @apply h-14 w-full rounded-[18px] border border-line bg-card px-[18px] text-base text-text outline-none transition focus:border-lime;
+  }
+  .btn-primary {
+    @apply flex h-[58px] w-full items-center justify-center gap-2.5 rounded-[18px] bg-lime text-[17px] font-extrabold text-ink transition active:scale-[.98] disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-card px-3.5 text-sm font-semibold text-text transition active:scale-[.98];
+  }
+  .chip {
+    @apply self-start rounded-full bg-lime px-2.5 py-1.5 text-xs font-bold uppercase tracking-[.12em] text-ink;
+  }
+}

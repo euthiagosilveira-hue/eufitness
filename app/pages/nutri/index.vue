@@ -1,0 +1,79 @@
+<script setup lang="ts">
+import type { Database } from '~/types/database.types'
+
+definePageMeta({ roles: ['nutri'], middleware: 'role' })
+
+const supabase = useSupabaseClient<Database>()
+const user = useSupabaseUser()
+const { me } = useMe()
+
+const orgId = computed(() => me.value!.current!.organization_id)
+const showInvite = ref(false)
+
+const { data: students, refresh } = await useAsyncData('painel-nutri', async () => {
+  const { data } = await supabase
+    .from('coach_students')
+    .select('student_id, status, since, student:profiles!coach_students_student_id_fkey(full_name)')
+    .eq('professional_id', user.value!.sub)
+    .order('since', { ascending: false })
+  return data ?? []
+})
+
+const active = computed(() => (students.value ?? []).filter((s) => s.status === 'ativo'))
+</script>
+
+<template>
+  <main class="flex flex-col gap-[22px] px-5 pt-6 pb-10">
+    <AppHeader />
+
+    <section class="grid grid-cols-2 gap-2.5">
+      <div class="flex flex-col gap-1.5 rounded-[20px] bg-card p-3.5">
+        <span class="font-display text-[26px] font-bold">{{ active.length }}</span>
+        <span class="text-xs text-muted">Alunos ativos</span>
+      </div>
+      <div class="flex flex-col gap-1.5 rounded-[20px] bg-card p-3.5">
+        <span class="font-display text-[26px] font-bold text-orange">0</span>
+        <span class="text-xs text-muted">Dietas para revisar</span>
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-4 rounded-[26px] border border-violet-line bg-violet-deep p-5">
+      <span class="flex items-center gap-1.5 text-xs font-bold tracking-[.08em] text-violet-soft uppercase">
+        <AppIcon name="leaf" :size="16" /> Dietas
+      </span>
+      <p class="font-display text-xl leading-tight font-semibold">As dietas que o agente montar chegam aqui para você aprovar</p>
+      <p class="text-sm text-muted">Nada vai para o aluno sem a sua assinatura.</p>
+    </section>
+
+    <section class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-lg font-semibold">Seus alunos</h2>
+        <button type="button" class="btn-ghost" @click="showInvite = true">
+          <AppIcon name="plus" :size="18" /> Convidar
+        </button>
+      </div>
+
+      <div v-if="!active.length" class="flex flex-col gap-2 rounded-[20px] border border-dashed border-line p-5 text-center">
+        <p class="font-semibold">Nenhum aluno vinculado</p>
+        <p class="text-sm text-muted">O personal vincula você aos alunos dele, ou você convida um aluno direto.</p>
+      </div>
+
+      <div v-for="s in active" :key="s.student_id" class="flex items-center gap-3.5 rounded-[20px] bg-card px-3.5 py-3">
+        <AppAvatar :name="s.student?.full_name ?? ''" :size="42" color="#FF8A3D" />
+        <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span class="truncate text-[15px] font-semibold">{{ s.student?.full_name || 'Sem nome' }}</span>
+          <span class="text-[13px] text-muted">Desde {{ new Date(`${s.since}T12:00`).toLocaleDateString('pt-BR') }}</span>
+        </div>
+        <span class="rounded-full bg-raised px-2.5 py-1 text-xs font-semibold text-muted">Sem dieta</span>
+      </div>
+    </section>
+
+    <InviteSheet
+      v-if="showInvite"
+      :organization-id="orgId"
+      :allow-nutri="false"
+      @close="showInvite = false"
+      @created="refresh()"
+    />
+  </main>
+</template>
